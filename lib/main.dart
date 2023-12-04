@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:contacts_service/contacts_service.dart';
+import 'package:CDA/db.dart';
 
 void main() {
   runApp(EmergencyApp());
@@ -9,6 +11,7 @@ class EmergencyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: HomePage(),
     );
   }
@@ -76,7 +79,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: Icon(Icons.add_alert),
+        leading: Image.asset('assets/app_icon.png'),
         title: Text('C D A'),
         backgroundColor: Color.fromARGB(255, 0, 195, 255),
       ),
@@ -150,7 +153,8 @@ class EmergencyContacts extends StatelessWidget {
               padding: const EdgeInsets.all(18.0),
               child: ElevatedButton(
                 onPressed: () {
-                  // Add your functionality for the bottom right button here
+                  // Check and request contacts permission
+                  _requestContactsPermission(context);
                 },
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(30, 50), // Adjust the size as needed
@@ -174,5 +178,31 @@ class EmergencyContacts extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _requestContactsPermission(BuildContext context) async {
+    PermissionStatus status = await Permission.contacts.request();
+
+    if (status == PermissionStatus.granted) {
+      // Permission granted, open contact picker
+      _openContactPicker(context);
+    } else {
+      // Permission denied, handle accordingly (e.g., show a message)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Contacts permission denied.'),
+        ),
+      );
+    }
+  }
+
+  void _openContactPicker(BuildContext context) async {
+    Iterable<Contact> contacts = await ContactsService.getContacts();
+
+    // Do something with the selected contacts (e.g., save them to a list)
+    for (var contact in contacts) {
+      // Handle each contact as needed
+      print('Selected contact: ${contact.displayName}');
+    }
   }
 }
